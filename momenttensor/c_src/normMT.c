@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "compearth.h"
 /*!
- * @brief Comptues matrix (Frobenius) onrm for symmetric matrix (moment tensor).
+ * @brief Comptues matrix (Frobenius) norm for symmetric matrix (moment tensor).
  *
  * @param[in] n       Number of moment tensors.
  * @param[in] M       Input symmetric matrix: {M11, M22, M33, M12, M13, M23}.
