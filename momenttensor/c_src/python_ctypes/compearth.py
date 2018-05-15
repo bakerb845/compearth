@@ -27,6 +27,7 @@ from numpy import linspace
 from numpy.random import rand
 from numpy.random import seed
 
+"""
 #compearthCoordSystem_enum
 (
 CE_UNKNOWN_COORDS, # Unkown coordinate system. 
@@ -51,8 +52,34 @@ CE_P_NORM,                 # L_p = \left \sum_i |x_i|^p \right )^{1/p}
 CE_INFINITY_NORM,          # L_\infty = max |x|
 CE_NEGATIVE_INFINITY_NORM  # L_{-\infty} = min |x|
 ) = map(c_int, range(6))
+"""
 
 class compearth:
+    #compearthCoordSystem_enum
+    (
+    CE_UNKNOWN_COORDS, # Unkown coordinate system. 
+    CE_USE,            # Up, south, east (G-CMT) 
+    CE_NED,            # North, east, down (Aki and Richards, 1980 pg 118)
+    CE_NWU,            # North, west, up
+    CE_ENU,            # East, north, up
+    CE_SEU             # South, east, up
+    ) = map(c_int, range(6))
+    #magType_enum
+    (
+    CE_UNKNOWN_MW,    # Unknown Mw scale.
+    CE_KANAMORI_1978, # Mw frrom Kanamori Mw = (2/3)*log10(M0) + k
+    CE_HARVARD_CMT    # Mw from Harvard CMT: (2/3)*(log10(M0) - 16.1)
+    ) = map(c_int, range(3))
+    #ceNormType_enum
+    (
+    CE_UNKNOWN_NORM,           # Unknown norm
+    CE_ONE_NORM,               # L_1 = \sum_i |x_i|
+    CE_TWO_NORM,               # L_2 = \sqrt{\sum_i x_i^2}
+    CE_P_NORM,                 # L_p = \left \sum_i |x_i|^p \right )^{1/p}
+    CE_INFINITY_NORM,          # L_\infty = max |x|
+    CE_NEGATIVE_INFINITY_NORM  # L_{-\infty} = min |x|
+    ) = map(c_int, range(6))
+
     def __init__(self,
                  compearth_path=os.environ['LD_LIBRARY_PATH'].split(os.pathsep),
                  compearth_library='libcompearth_shared.so'):
@@ -498,6 +525,8 @@ class compearth:
         mnorm : The n matrix (Frobenius) norms of the given moment tensors.
         """ 
         nmt = len(M)//6
+        if (nmt > 1):
+            M = reshape(M, 6*nmt, order='F') 
         MPtr = self.__arrayToFloat64Pointer__(M)
         mnorm, mnormPtr = self.__allocFloat64Pointer__(nmt) 
         ierr = self.ce.compearth_normMT(nmt, MPtr, L_norm, p, mnormPtr)
@@ -505,7 +534,7 @@ class compearth:
             print("Error calling compearth_normMT")
         return mnorm
 
-    def convertMT(i1, i2, M):
+    def convertMT(self, i1, i2, M):
         """
         Converts a moment tensor, M, from input system defined by i1 to
         moment tensor, Mout, in output system defined by i2.
@@ -528,10 +557,13 @@ class compearth:
             [6 x nmt] moment tensors in i2 coordinates.
         """
         nmt = len(M)//6
+        if (nmt > 1):
+            M = reshape(M, 6*nmt, order='F')
         MPtr = self.__arrayToFloat64Pointer__(M)
-        Mout, MoutPtr = self.__allocFloat64Pointer__(nmt) 
+        Mout, MoutPtr = self.__allocFloat64Pointer__(6*nmt) 
         ierr = self.ce.compearth_convertMT(nmt, i1, i2, MPtr, MoutPtr)
-        Mout = Mout.reshape([6, nmt], order='C')
+        if (nmt > 1):
+            Mout = Mout.reshape([6, nmt], order='C')
         return Mout
 
 ################################################################################
