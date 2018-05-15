@@ -12,7 +12,7 @@
 
 /*!
  * @brief Converts a moment tensor, M, from input system defined by i1in
- *        to moment tensor, Mout, to output system defind by i2in.
+ *        to moment tensor, Mout, in output system defined by i2in.
  *
  * @param[in] nmt      Number of moment tensors.
  * @param[in] i1in     Coordinate system for M: \n

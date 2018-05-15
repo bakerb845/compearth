@@ -27,6 +27,31 @@ from numpy import linspace
 from numpy.random import rand
 from numpy.random import seed
 
+#compearthCoordSystem_enum
+(
+CE_UNKNOWN_COORDS, # Unkown coordinate system. 
+CE_USE,            # Up, south, east (G-CMT) 
+CE_NED,            # North, east, down (Aki and Richards, 1980 pg 118) 
+CE_NWU,            # North, west, up 
+CE_ENU,            # East, north, up 
+CE_SEU             # South, east, up 
+) = map(c_int, range(6))
+#magType_enum
+(
+CE_UNKNOWN_MW,    # Unknown Mw scale.
+CE_KANAMORI_1978, # Mw frrom Kanamori Mw = (2/3)*log10(M0) + k
+CE_HARVARD_CMT    # Mw from Harvard CMT: (2/3)*(log10(M0) - 16.1)
+) = map(c_int, range(3))
+#ceNormType_enum
+(
+CE_UNKNOWN_NORM,           # Unknown norm
+CE_ONE_NORM,               # L_1 = \sum_i |x_i|
+CE_TWO_NORM,               # L_2 = \sqrt{\sum_i x_i^2}
+CE_P_NORM,                 # L_p = \left \sum_i |x_i|^p \right )^{1/p}
+CE_INFINITY_NORM,          # L_\infty = max |x|
+CE_NEGATIVE_INFINITY_NORM  # L_{-\infty} = min |x|
+) = map(c_int, range(6))
+
 class compearth:
     def __init__(self,
                  compearth_path=os.environ['LD_LIBRARY_PATH'].split(os.pathsep),
@@ -94,6 +119,16 @@ class compearth:
         ce.compearth_v2gamma.argtypes = (c_int,
                                          POINTER(c_double), 
                                          POINTER(c_double))
+        ce.compearth_normMT.argtypes = (c_int,
+                                        POINTER(c_double),
+                                        c_int, #enum
+                                        c_double,
+                                        POINTER(c_double))
+        ce.compearth_convertMT.argtypes = (c_int,
+                                           c_int, # enum
+                                           c_int, # enum
+                                           POINTER(c_double),
+                                           POINTER(c_double))
         self.ce = ce
         return 
 
@@ -444,6 +479,60 @@ class compearth:
         gamma, gammaPtr = self.__allocFloat64Pointer__(n)
         self.ce.compearth_v2gamma(n, vPtr, gammaPtr)
         return gamma 
+
+    def normMT(self, M, L_norm = CE_TWO_NORM, p = 2.0):
+        """
+        Computes matrix (Frobenius) norm for symmetric matrix (moment tensor).
+
+        Input
+        -----
+        M : array_like
+            [6 x n] input symmetric matrices: M = [M11, M22, M33, M12, M13, M23] 
+        L_norm : int
+            Desired norm.
+        p : float
+            If using a p norm then this is the value of p.
+
+        Output
+        ------
+        mnorm : The n matrix (Frobenius) norms of the given moment tensors.
+        """ 
+        nmt = len(M)//6
+        MPtr = self.__arrayToFloat64Pointer__(M)
+        mnorm, mnormPtr = self.__allocFloat64Pointer__(nmt) 
+        ierr = self.ce.compearth_normMT(nmt, MPtr, L_norm, p, mnormPtr)
+        if (ierr != 0):
+            print("Error calling compearth_normMT")
+        return mnorm
+
+    def convertMT(i1, i2, M):
+        """
+        Converts a moment tensor, M, from input system defined by i1 to
+        moment tensor, Mout, in output system defined by i2.
+
+        Input
+        -----
+        i1 : int
+            Describes the input system of M.  Approriate choices are 
+            CE_USE, CE_NED, CE_NWU, CE_ENU, and CE_SEU.
+        i2 : int
+            Describes the output system.  Appropriate choices are
+            CE_USE, CE_NED, CE_NWU, CE_ENU, and CE_SEU.
+        M : array_like
+            [6 x nmt] input moment tensors: M = [M11, M22, M33, M12, M13, M23]
+            in i1 coordinates.
+
+        Output
+        ------
+        Mout : array_like
+            [6 x nmt] moment tensors in i2 coordinates.
+        """
+        nmt = len(M)//6
+        MPtr = self.__arrayToFloat64Pointer__(M)
+        Mout, MoutPtr = self.__allocFloat64Pointer__(nmt) 
+        ierr = self.ce.compearth_convertMT(nmt, i1, i2, MPtr, MoutPtr)
+        Mout = Mout.reshape([6, nmt], order='C')
+        return Mout
 
 ################################################################################
 #                                   Unit Testing                               #
