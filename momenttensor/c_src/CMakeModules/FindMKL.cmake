@@ -28,6 +28,17 @@ IF (MKL_LIBRARY)
     SET(MKL_FOUND "YES")
 ENDIF (MKL_LIBRARY)
 
+find_path (MKL_INCLUDE_DIR 
+           NAMES mkl.h
+           PATHS /opt/intel/mkl/include)
+
+if(MKL_INCLUDE_DIR)
+  message("found mkl include")
+else(MKL_INCLUDE_DIR)
+  message("NOT found mkl include")
+  SET(MKL_FOUND "NO")
+endif(MKL_INCLUDE_DIR)
+
 IF (MKL_FOUND)
     IF (NOT MKL_FIND_QUIETLY)
 	MESSAGE(STATUS "Found MKL: ${MKL_LIBRARY}")
