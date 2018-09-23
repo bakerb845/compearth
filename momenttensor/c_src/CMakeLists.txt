@@ -149,6 +149,8 @@ ENDIF (COMPEARTH_BUILD_PYTHON_MODULE)
 #------------------------------------------------------------------------------#
 #                              Configuration Details                           #
 #------------------------------------------------------------------------------#
+
+set_property(TARGET compearth_shared PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(COMPEARTH_LIBRARY compearth)
 SET(INCLUDE_INSTALL_DIR include/) #${INCLUDE_DIRECTORIES}) #$include/ ... CACHE)
 SET(LIB_INSTALL_DIR lib/)
