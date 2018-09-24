@@ -19,6 +19,18 @@ The purpose of CMake is to serve as a cross-platform Makefile generator.  CMake,
 ## Configuring With System LAPACK(e) and (C)BLAS
 
     #!/bin/bash
+    export CC=clang
+    if [ -f Makefile ]; then
+       make clean
+    fi
+    if [ -f CMakeCache.txt ]; then
+       echo "Removing CMakeCache.txt"
+       rm CMakeCache.txt
+    fi
+    if [ -d CMakeFiles ]; then
+       echo "Removing CMakeFiles"
+       rm -rf CMakeFiles
+    fi
     /usr/bin/cmake ./ -DCMAKE_BUILD_TYPE=DEBUG \
     -DCMAKE_INSTALL_PREFIX=./ \
     -DCMAKE_C_COMPILER=clang \
@@ -35,6 +47,20 @@ The purpose of CMake is to serve as a cross-platform Makefile generator.  CMake,
 Alternatively, to configure with MKL and the Intel C and Fortran compilers (which are not required by MKL) I would do something like:
 
     #!/bin/bash
+    export CC=icc
+    export FC=ifort
+    export F90=ifort
+    if [ -f Makefile ]; then
+       make clean
+    fi  
+    if [ -f CMakeCache.txt ]; then
+       echo "Removing CMakeCache.txt"
+       rm CMakeCache.txt
+    fi  
+    if [ -d CMakeFiles ]; then
+       echo "Removing CMakeFiles"
+       rm -rf CMakeFiles
+    fi
     /usr/bin/cmake ./ -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=./ \
     -DCMAKE_C_COMPILER=icc \
@@ -57,6 +83,20 @@ Additionally, if using MKL, it may be necessary to link to libmkl_avx2, libmkl_m
 With [SWIG](http://www.swig.org/) and [NumPy](http://www.numpy.org/) it may be possible to wrap some components of the library for use from Python.  In this instance a configuration script may look like
 
     #!/bin/bash
+    export CC=icc
+    export FC=ifort
+    export F90=ifort
+    if [ -f Makefile ]; then
+       make clean
+    fi
+    if [ -f CMakeCache.txt ]; then
+       echo "Removing CMakeCache.txt"
+       rm CMakeCache.txt
+    fi
+    if [ -d CMakeFiles ]; then
+       echo "Removing CMakeFiles"
+       rm -rf CMakeFiles
+    fi
     /usr/bin/cmake ./ -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=./ \
     -DCMAKE_C_COMPILER=icc \
