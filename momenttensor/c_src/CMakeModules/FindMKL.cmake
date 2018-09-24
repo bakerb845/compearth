@@ -8,6 +8,7 @@
 
 SET(MKL_FOUND "NO")
 
+MESSAGE("Searching for MKL")
 SET(MKL_NAMES ${MKL_NAMES} mkl_intel_lp64 mkl_core mkl_sequential)
 FOREACH (MKL_NAME ${MKL_NAMES})
    FIND_LIBRARY(${MKL_NAME}_LIBRARY
@@ -16,6 +17,7 @@ FOREACH (MKL_NAME ${MKL_NAMES})
        /opt/intel/mkl/lib/intel64
        $ENV{MKL_DIR}/lib/intel64
    )
+
    SET(TMP_LIBRARY ${${MKL_NAME}_LIBRARY})
 
    IF(TMP_LIBRARY)
@@ -28,16 +30,18 @@ IF (MKL_LIBRARY)
     SET(MKL_FOUND "YES")
 ENDIF (MKL_LIBRARY)
 
-IF (MKL_FOUND)
-    IF (NOT MKL_FIND_QUIETLY)
-	MESSAGE(STATUS "Found MKL: ${MKL_LIBRARY}")
-    ENDIF (NOT MKL_FIND_QUIETLY)
-    MARK_AS_ADVANCED(MKL_LIBRARY MKL_LIBRARY)
-ELSE (MKL_FOUND)
+find_path (MKL_INCLUDE_DIR 
+           NAMES mkl.h
+           PATHS /opt/intel/mkl/include)
+
+
+IF (NOT MKL_FOUND)
     IF (MKL_FIND_REQUIRED)
 	MESSAGE(FATAL_ERROR "Could not find MKL library")
     ENDIF (MKL_FIND_REQUIRED)
-ENDIF (MKL_FOUND)
+ENDIF (NOT MKL_FOUND)
+
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (MKL DEFAULT_MSG MKL_LIBRARY)
-mark_as_advanced(MKL_LIBRARY)
+find_package_handle_standard_args (MKL DEFAULT_MSG MKL_LIBRARY MKL_INCLUDE_DIR)
+mark_as_advanced(MKL_LIBRARY MKL_LIBRARY)
+

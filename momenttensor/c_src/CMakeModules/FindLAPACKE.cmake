@@ -1,6 +1,7 @@
-# include(FindLibraryWithDebug)
 if (LAPACKE_INCLUDE_DIR AND LAPACKE_LIBRARY AND LAPACK_LIBRARY)
   set(LAPACKE_FIND_QUIETLY TRUE)
+else()
+  MESSAGE("Searching for LAPACKE")
 endif (LAPACKE_INCLUDE_DIR AND LAPACKE_LIBRARY AND LAPACK_LIBRARY)
 find_path(LAPACKE_INCLUDE_DIR
   NAMES lapacke.h
@@ -27,6 +28,6 @@ find_file(LAPACK_LIBRARY
   PATHS /usr/lib64 /usr/lib $ENV{LAPACKEDIR}/lib ${LIB_INSTALL_DIR}
 )
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LAPACKE DEFAULT_MSG
-                                  LAPACKE_INCLUDE_DIR LAPACKE_LIBRARY LAPACK_LIBRARY)
-mark_as_advanced(LAPACKE_INCLUDE_DIR LAPACKE_LIBRARY LAPACK_LIBRARY)
+find_package_handle_standard_args(LAPACKE DEFAULT_MSG LAPACKE_LIBRARY LAPACK_LIBRARY
+                                  LAPACKE_INCLUDE_DIR)
+mark_as_advanced(LAPACKE_LIBRARY LAPACK_LIBRARY LAPACKE_INCLUDE_DIR)

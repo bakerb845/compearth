@@ -1,6 +1,7 @@
-# include(FindLibraryWithDebug)
 if (CBLAS_INCLUDE_DIR AND CBLAS_LIBRARY AND BLAS_LIBRARY)
   set(CBLAS_FIND_QUIETLY TRUE)
+else()
+  MESSAGE("Searching for CBLAS")
 endif (CBLAS_INCLUDE_DIR AND CBLAS_LIBRARY AND BLAS_LIBRARY)
 find_path(CBLAS_INCLUDE_DIR
   NAMES cblas.h
@@ -34,6 +35,6 @@ find_library(BLAS_LIBRARY
 #)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(CBLAS DEFAULT_MSG
-                                  CBLAS_INCLUDE_DIR CBLAS_LIBRARY BLAS_LIBRARY)
-mark_as_advanced(CBLAS_INCLUDE_DIR CBLAS_LIBRARY BLAS_LIBRARY)
+find_package_handle_standard_args(CBLAS DEFAULT_MSG CBLAS_LIBRARY 
+                                  CBLAS_INCLUDE_DIR BLAS_LIBRARY)
+mark_as_advanced(CBLAS_LIBRARY CBLAS_INCLUDE_DIR BLAS_LIBRARY)
