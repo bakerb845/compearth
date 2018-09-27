@@ -6,16 +6,21 @@
 #  MKL_DEFINITIONS - You should ADD_DEFINITONS(${MKL_DEFINITIONS}) before compiling code that includes MKL library files.
 #  MKL_FOUND, If false, do not try to use MKL.
 
-SET(MKL_FOUND "NO")
+
+
+find_path (MKL_DIR 
+           NAMES include/mkl.h
+           PATHS /opt/intel/mkl ${MKL_DIR})
 
 MESSAGE("Searching for MKL")
 SET(MKL_NAMES ${MKL_NAMES} mkl_intel_lp64 mkl_core mkl_sequential)
 FOREACH (MKL_NAME ${MKL_NAMES})
    FIND_LIBRARY(${MKL_NAME}_LIBRARY
        NAMES ${MKL_NAME} 
-       PATHS
-       /opt/intel/mkl/lib/intel64
-       $ENV{MKL_DIR}/lib/intel64
+       PATHS       
+             ${MKL_DIR}/lib/intel64
+             /opt/intel/mkl/lib/intel64
+             $ENV{MKL_DIR}/lib/intel64
    )
 
    SET(TMP_LIBRARY ${${MKL_NAME}_LIBRARY})
@@ -32,7 +37,11 @@ ENDIF (MKL_LIBRARY)
 
 find_path (MKL_INCLUDE_DIR 
            NAMES mkl.h
-           PATHS /opt/intel/mkl/include)
+           PATHS 
+                 ${MKL_DIR}/include
+                 /opt/intel/mkl/include   
+                 $ENV{MKL_DIR}/include
+            )
 
 
 IF (NOT MKL_FOUND)
@@ -42,6 +51,5 @@ IF (NOT MKL_FOUND)
 ENDIF (NOT MKL_FOUND)
 
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (MKL DEFAULT_MSG MKL_LIBRARY MKL_INCLUDE_DIR)
-mark_as_advanced(MKL_LIBRARY MKL_LIBRARY)
-
+find_package_handle_standard_args (MKL DEFAULT_MSG MKL_DIR  MKL_LIBRARY MKL_INCLUDE_DIR)
+mark_as_advanced(MKL_DIR MKL_LIBRARY MKL_LIBRARY)
