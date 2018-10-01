@@ -51,5 +51,9 @@ IF (NOT MKL_FOUND)
 ENDIF (NOT MKL_FOUND)
 
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (MKL DEFAULT_MSG MKL_DIR  MKL_LIBRARY MKL_INCLUDE_DIR)
-mark_as_advanced(MKL_DIR MKL_LIBRARY MKL_LIBRARY)
+find_package_handle_standard_args (MKL DEFAULT_MSG 
+                                 # MKL_DIR  
+                                  MKL_LIBRARY MKL_INCLUDE_DIR)
+mark_as_advanced(
+                 #MKL_DIR 
+                 MKL_LIBRARY MKL_LIBRARY)
