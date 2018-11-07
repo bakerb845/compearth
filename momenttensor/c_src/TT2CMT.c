@@ -33,11 +33,13 @@
  *                       dimension [6 x nmt] with leading dimension 6.
  * @param[out] lam       [3 x nmt] set of eigenvalues corresponding to U with
  *                       leading dimension 3.
+ *                       If NULL then this will not be accessed.
  * @param[out] U         3 x 3 bases in SEU convention.  This is an array of
  *                       dimension [3 x 3 x nmt] where each leading 3 x 3
  *                       matrix is in column major order.
+ *                       If NULL then this will not be accessed.
  *
- * @result 0 indicates success
+ * @result 0 indicates success.
  *
  * @author Ben Baker, ISTI
  */
@@ -54,11 +56,12 @@ int compearth_TT2CMT(const int nmt,
 {
     double M9[9*CE_CHUNKSIZE], R[9*CE_CHUNKSIZE],
            M6[6*CE_CHUNKSIZE], K[3*CE_CHUNKSIZE],
-           N[3*CE_CHUNKSIZE],
+           N[3*CE_CHUNKSIZE], lamWork[3*CE_CHUNKSIZE],
            sigma[CE_CHUNKSIZE], phi[CE_CHUNKSIZE];
-    double Yrot[9], V[9], Uxd[9], NxS[3], S[3], *lam3, *Ux;
+    double Yrot[9], V[9], Uxd[9], U9[9], NxS[3], S[3], *lamPtr, *Ux;
     const double neg45 =-45.0;
     int i, ierr, ierr1, ierr2, imt, iwarn1, nmtLoc;
+    bool lwantLam, lwantU;
     // for north-west-up basis (TapeTape2012)
     //north = [1 0 0]'; zenith = [0 0 1]';
     // for south-east-up basis (TapeTape2013)
@@ -86,6 +89,10 @@ int compearth_TT2CMT(const int nmt,
         }
         return -1;
     }
+    lwantLam = false;
+    if (lam != NULL){lwantLam = true;}
+    lwantU = false;
+    if (U != NULL){lwantU = true;}
     // Bounds checks and warnings on undefined strike angles
     ierr1 = 0;
     ierr2 = 0;
@@ -128,8 +135,10 @@ int compearth_TT2CMT(const int nmt,
             } 
         }
         // Moment tensor source type (or pattern)
+        lamPtr = lamWork;
+        if (lwantLam){lamPtr = &lam[3*imt];}
         compearth_lune2lam(nmtLoc, &gamma[imt], &delta[imt],
-                           &M0[imt], &lam[3*imt]);
+                           &M0[imt], lamPtr); //&lam[3*imt]);
         // PART 2: moment tensor orientation
         // NOTE: Algorithmically, it would be simpler to compute V directly
         // from the expression in Proposition 2, since this requires fewer
@@ -162,33 +171,47 @@ int compearth_TT2CMT(const int nmt,
         if (ierr != 0){goto ERROR;}
         // TT2012, Eq 28 (or Proposition 2)
         compearth_eulerUtil_rotmat(1, &neg45, 2, Yrot);
-        lam3 = (double *) &lam[3*imt];
-        Ux = (double *) &U[9*imt];
+        //Ux = (double *) &U[9*imt];
         for (i=0; i<nmtLoc; i++)
         {
+            if (lwantU)
+            {
+                Ux = (double *) &U[9*(imt+i)];
+            }
+            else
+            {
+                Ux = U9;
+            }
+            memset(Ux, 0, 9*sizeof(double));
+            //if (lwantU){Ux = &U[9*(imt)];}
             gemv3_colMajorNoTrans(&R[9*i], &K[3*i], S); // moved to here
             cross3(&N[3*i], S, NxS); //ierr = cross(3, N, S, NxS);
             V[0] = S[0]; V[3] = NxS[0]; V[6] = N[3*i+0];
             V[1] = S[1]; V[4] = NxS[1]; V[7] = N[3*i+1];
             V[2] = S[2]; V[5] = NxS[2]; V[8] = N[3*i+2];
             gemm3_colMajorNoTransNoTrans(V, Yrot, Ux);
+
+//printf("%lf %lf %lf\n", Ux[0], Ux[3], Ux[6]);
+//printf("%lf %lf %lf\n", Ux[1], Ux[4], Ux[7]);
+//printf("%lf %lf %lf\n", Ux[2], Ux[5], Ux[8]);
+//getchar();
             // Ux*diag(lam)
-            Uxd[0] = Ux[0]*lam3[3*i+0];
-            Uxd[1] = Ux[1]*lam3[3*i+0];
-            Uxd[2] = Ux[2]*lam3[3*i+0];
-            Uxd[3] = Ux[3]*lam3[3*i+1];
-            Uxd[4] = Ux[4]*lam3[3*i+1];
-            Uxd[5] = Ux[5]*lam3[3*i+1];
-            Uxd[6] = Ux[6]*lam3[3*i+2];
-            Uxd[7] = Ux[7]*lam3[3*i+2];
-            Uxd[8] = Ux[8]*lam3[3*i+2];
+            Uxd[0] = Ux[0]*lamPtr[3*i+0];
+            Uxd[1] = Ux[1]*lamPtr[3*i+0];
+            Uxd[2] = Ux[2]*lamPtr[3*i+0];
+            Uxd[3] = Ux[3]*lamPtr[3*i+1];
+            Uxd[4] = Ux[4]*lamPtr[3*i+1];
+            Uxd[5] = Ux[5]*lamPtr[3*i+1];
+            Uxd[6] = Ux[6]*lamPtr[3*i+2];
+            Uxd[7] = Ux[7]*lamPtr[3*i+2];
+            Uxd[8] = Ux[8]*lamPtr[3*i+2];
             // Ux*diag(lam)*ux
             gemm3_colMajorNoTransTrans(Uxd, Ux, &M9[9*i]);
 //printf("%e %e %e %e %e %e %e %e %e\n", M9[9*i], M9[9*i+1], M9[9*i+2],
 // M9[9*i+3], M9[9*i+4], M9[9*i+5], M9[9*i+6], M9[9*i+7], M9[9*i+8]);
 //printf("%e %e %e %e %e %e\n", M9[9*i],M9[9*i+1], M9[9*i+2],M9[9*i+3],M9[9*i+4],M9[9*i+5]);
         }
-        lam3 = NULL;
+        lamPtr = NULL;
         Ux = NULL;
         // cblas_dcopy(9*nmtLoc, Ux, 1, U[9*i], 1); -> now happens w/ ptrs
         compearth_Mvec2Mmat(nmtLoc, M9, 2, M6);

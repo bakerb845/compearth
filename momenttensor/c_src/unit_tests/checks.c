@@ -239,7 +239,8 @@ int check_TT2CMT(void)
                               0.276988619555150,  0.703618776646631,
                               0.654368338007907};
     double M61[6], lam1[3], U91[9];
-    int i, ierr;
+    int i, ierr, j;
+    memset(U91, 0, 9*sizeof(double));
     ierr = compearth_TT2CMT(1, gamma1, delta1, M01, kappa1, theta1, sigma1,
                             M61, lam1, U91);
     if (ierr != 0)
@@ -402,6 +403,25 @@ getchar();
             fprintf(stderr, "%s: Failed to compute sigma %e %e %d\n",
                     __func__, sigma[i], sigmaNew[i], i); 
             return -1;
+        }
+        for (j=0; j<3; j++)
+        {
+            if (fabs(lamNew[3*i+j] - lam[3*i+j]) > 1.e-10)
+            {
+                fprintf(stderr, "%s: Failed to compute lam %e %e %d\n",
+                        __func__, lam[3*i+j], lamNew[3*i+j], i);
+                return -1;
+            }
+        }
+        for (j=0; j<9; j++)
+        {
+            // Can be off up to a sign factor
+            if (fabs(UNew[9*i+j] - U[9*i+j]) > 1.e-10 &&
+                fabs(UNew[9*i+j] + U[9*i+j]) > 1.e-10)
+            {
+                fprintf(stderr, "%s: Failed to compute U %e %e %d\n",
+                        __func__, UNew[9*i+j], U[9*i+j], i);
+            }
         }
     }
     // Free space
