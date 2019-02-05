@@ -54,10 +54,7 @@ int compearth_TT2CMT(const int nmt,
                      double *__restrict__ lam,
                      double *__restrict__ U)
 {
-    double M9[9*CE_CHUNKSIZE], R[9*CE_CHUNKSIZE],
-           M6[6*CE_CHUNKSIZE], K[3*CE_CHUNKSIZE],
-           N[3*CE_CHUNKSIZE];
-    double *lamWork, *sigma, *phi;
+    double *M9, *R, *M6, *K, *N, *lamWork, *sigma, *phi;
     double Yrot[9], V[9], Uxd[9], U9[9], NxS[3], S[3], *lamPtr, *Ux;
     const double neg45 =-45.0;
     int i, ierr, ierr1, ierr2, imt, iwarn1, nmtLoc;
@@ -122,6 +119,11 @@ int compearth_TT2CMT(const int nmt,
         fprintf(stdout, "%s: Slip angles will be set to 0\n", __func__);
     }
     // Set workspace
+    M9 = (double *) calloc(9*CE_CHUNKSIZE, sizeof(double));
+    R = (double *) calloc(9*CE_CHUNKSIZE, sizeof(double));
+    M6 = (double *) calloc(6*CE_CHUNKSIZE, sizeof(double));
+    K = (double *) calloc(3*CE_CHUNKSIZE, sizeof(double));
+    N = (double *) calloc(3*CE_CHUNKSIZE, sizeof(double));
     lamWork = (double *) calloc(3*CE_CHUNKSIZE, sizeof(double));
     sigma = (double *) calloc(CE_CHUNKSIZE, sizeof(double));
     phi = (double *) calloc(CE_CHUNKSIZE, sizeof(double));
@@ -242,6 +244,11 @@ for (i=0; i<nmtLoc; i++)
                 __func__);
         }
     } // Loop on moment tensors
+    free(M9);
+    free(R);
+    free(M6);
+    free(K);
+    free(N);
     free(lamWork);
     free(sigma);
     free(phi);
