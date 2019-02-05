@@ -56,8 +56,8 @@ int compearth_TT2CMT(const int nmt,
 {
     double M9[9*CE_CHUNKSIZE], R[9*CE_CHUNKSIZE],
            M6[6*CE_CHUNKSIZE], K[3*CE_CHUNKSIZE],
-           N[3*CE_CHUNKSIZE], lamWork[3*CE_CHUNKSIZE],
-           sigma[CE_CHUNKSIZE], phi[CE_CHUNKSIZE];
+           N[3*CE_CHUNKSIZE];
+    double *lamWork, *sigma, *phi;
     double Yrot[9], V[9], Uxd[9], U9[9], NxS[3], S[3], *lamPtr, *Ux;
     const double neg45 =-45.0;
     int i, ierr, ierr1, ierr2, imt, iwarn1, nmtLoc;
@@ -121,6 +121,10 @@ int compearth_TT2CMT(const int nmt,
                 __func__, iwarn1);
         fprintf(stdout, "%s: Slip angles will be set to 0\n", __func__);
     }
+    // Set workspace
+    lamWork = (double *) calloc(3*CE_CHUNKSIZE, sizeof(double));
+    sigma = (double *) calloc(CE_CHUNKSIZE, sizeof(double));
+    phi = (double *) calloc(CE_CHUNKSIZE, sizeof(double));
     // Loop on moment tensor chunks
     for (imt=0; imt<nmt; imt=imt+CE_CHUNKSIZE)
     {
@@ -238,6 +242,9 @@ for (i=0; i<nmtLoc; i++)
                 __func__);
         }
     } // Loop on moment tensors
+    free(lamWork);
+    free(sigma);
+    free(phi);
 //printf("%e\n%e\n%e\n%e\n%e\n%e\n",M[0],M[1],M[2],M[3],M[4],M[5]);
 //printf("U:\n");
 //printf("%e %e %e\n", U[0], U[3], U[6]); 
