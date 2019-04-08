@@ -13,7 +13,7 @@ find_path (MKL_DIR
            PATHS /opt/intel/mkl ${MKL_DIR})
 
 MESSAGE("Searching for MKL")
-SET(MKL_NAMES ${MKL_NAMES} mkl_intel_lp64 mkl_core mkl_sequential)
+SET(MKL_NAMES ${MKL_NAMES} mkl_intel_lp64 mkl_core mkl_sequential mkl_avx2 mkl_def)
 FOREACH (MKL_NAME ${MKL_NAMES})
    FIND_LIBRARY(${MKL_NAME}_LIBRARY
        NAMES ${MKL_NAME} 
